@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:7
+    container_name: finrisk-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: finrisk-ai
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - finrisk-network
+
+  # Backend API
+  backend:
+    build: ./backend
+    container_name: finrisk-backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - MONGODB_URI=mongodb://mongodb:27017/finrisk-ai
+      - CORS_ORIGIN=http://localhost:3001
+    depends_on:
+      - mongodb
+    networks:
+      - finrisk-network
+    command: sh -c "sleep 10 && npm start"
+
+volumes:
+  mongodb_data:
+    driver: local
+
+networks:
+  finrisk-network:
+    driver: bridge
