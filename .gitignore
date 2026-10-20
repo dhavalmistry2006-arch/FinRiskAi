@@ -47,3 +47,6 @@ dist-ssr
 **/playwright-report/
 **/test-results/
 .runtime/
+
+# TypeScript compiler cache
+*.tsbuildinfo

@@ -454,6 +454,7 @@ function DashboardContent({
                       {distribution.map((v, i) => (
                         <Cell
                           key={v.name}
+                          aria-label={`${v.name}: ${v.value} applications`}
                           fill={riskColors[v.name] || colors[i % 4]}
                           cursor="pointer"
                         />

@@ -164,7 +164,7 @@ export const openapi = {
     "/reports/{type}": {
       get: operation("Export real data as PDF, CSV or XLSX"),
     },
-    "/audit": { get: operation("Paginated immutable audit events") },
+    "/audit": { get: operation("Paginated append-only API audit events") },
     "/users": {
       get: operation("Administrator: list users"),
       post: operation("Administrator: create user", object),
@@ -202,4 +202,87 @@ for (const [path, item] of Object.entries(openapi.paths)) {
   get: operation(
     "Descriptive input and prediction PSI against synthetic training reference",
   ),
+};
+
+const paths = openapi.paths as Record<string, any>;
+paths["/auth/password"] = {
+  post: operation("Change password and revoke sessions", {
+    type: "object",
+    required: ["currentPassword", "password"],
+    properties: {
+      currentPassword: { type: "string", format: "password" },
+      password: {
+        type: "string",
+        minLength: 12,
+        maxLength: 128,
+        format: "password",
+      },
+    },
+  }),
+};
+paths["/assessments"] = {
+  get: operation("List stored historical assessments"),
+};
+paths["/portfolios"] = {
+  get: operation("Currency-separated stored portfolio analytics"),
+};
+paths["/scenarios/{id}"] = {
+  parameters: [
+    { name: "id", in: "path", required: true, schema: { type: "string" } },
+  ],
+  delete: operation("Delete a saved hypothetical scenario"),
+};
+paths["/batches/preview"] = {
+  post: {
+    ...operation(
+      "Safely parse CSV/XLSX and preview headers, first five rows and validation errors",
+    ),
+    requestBody: paths["/batches"].post.requestBody,
+  },
+};
+paths["/batches/{id}/download"] = {
+  parameters: [
+    { name: "id", in: "path", required: true, schema: { type: "string" } },
+  ],
+  get: operation("Download successful batch assessments as CSV"),
+};
+for (const path of [
+  "/applications",
+  "/scenarios",
+  "/users",
+  "/applications/{id}/assess",
+]) {
+  const post = paths[path]?.post;
+  if (post) {
+    post.responses["201"] = response("Created");
+    delete post.responses["200"];
+  }
+}
+paths["/batches"].post.responses["202"] = response(
+  "Queued; poll the job identifier",
+);
+delete paths["/batches"].post.responses["200"];
+paths["/reports/{type}"].get.parameters = [
+  {
+    name: "format",
+    in: "query",
+    schema: { type: "string", enum: ["pdf", "csv", "xlsx"], default: "pdf" },
+  },
+  {
+    name: "id",
+    in: "query",
+    schema: { type: "string" },
+    description:
+      "Application, scenario or batch identifier for individual reports",
+  },
+];
+paths["/reports/{type}"].get.responses["200"] = {
+  description: "Data-backed report download",
+  content: {
+    "application/pdf": { schema: { type: "string", format: "binary" } },
+    "text/csv": { schema: { type: "string" } },
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+      schema: { type: "string", format: "binary" },
+    },
+  },
 };

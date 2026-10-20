@@ -19,7 +19,7 @@ export const config = {
 };
 export function jwtSecret() {
   const secret = process.env.JWT_SECRET;
-  if (!secret || secret.length < 32)
+  if (!secret || secret.length < 32 || /replace-with|your_secret/i.test(secret))
     throw new Error("JWT_SECRET must contain at least 32 characters");
   return secret;
 }

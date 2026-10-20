@@ -13,6 +13,7 @@ COPY package*.json ./
 RUN --mount=type=secret,id=build_ca,target=/tmp/build-ca.pem \
     if [ -f /tmp/build-ca.pem ]; then export NODE_EXTRA_CA_CERTS=/tmp/build-ca.pem; fi; npm ci --omit=dev --no-audit --no-fund
 COPY --from=build /app/dist ./dist
+RUN chmod -R a+rX /app
 USER node
 EXPOSE 5000
 CMD ["node","dist/server.js"]

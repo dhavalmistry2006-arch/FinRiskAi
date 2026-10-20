@@ -777,8 +777,8 @@ ul {
   border-radius: 4px;
   padding: 4px 7px;
   font-size: 8px;
-  background: #f0f3f7;
-  color: #8490a2;
+  background: var(--surface-alt);
+  color: var(--muted);
   font-weight: 500;
 }
 .tone-low,
@@ -787,33 +787,33 @@ ul {
 .tone-approvedbyreviewer,
 .tone-resolved {
   background: #e8f5ef;
-  color: #3f9b7d;
+  color: #136b58;
 }
 .tone-moderate,
 .tone-medium,
 .tone-warning,
 .tone-acknowledged {
   background: #fcf4df;
-  color: #af9241;
+  color: #7b5711;
 }
 .tone-elevated,
 .tone-open,
 .tone-underreview {
   background: #fff0e5;
-  color: #c0844e;
+  color: #904511;
 }
 .tone-high,
 .tone-critical,
 .tone-failed,
 .tone-rejectedbyreviewer {
   background: #faecee;
-  color: #c36e7a;
+  color: #a3384a;
 }
 .tone-neutral,
 .tone-draft,
 .tone-unassessed {
   background: var(--surface-alt);
-  color: #8a96a6;
+  color: var(--muted);
   border: 1px solid var(--line);
 }
 .two-column {
@@ -2716,4 +2716,104 @@ progress::-webkit-progress-value {
 .preview-validation {
   padding: 8px 0 15px;
   font-size: 10px;
+}
+
+/* Research data must remain readable at laptop sizes: WCAG AA text contrast. */
+:root {
+  --muted: #5c6c82;
+  --safe: #087565;
+  --risk: #af4039;
+}
+.login-form > p,
+.login-help,
+.login-footer,
+.field > span {
+  color: #5b6c85;
+}
+.login-intro .login-disclaimer {
+  color: #91a6c4;
+}
+.badge.tone-low,
+.tone-low {
+  color: #136b58;
+}
+.badge.tone-moderate,
+.tone-moderate {
+  color: #7b5711;
+}
+.badge.tone-elevated,
+.tone-elevated {
+  color: #904511;
+}
+.badge.tone-high,
+.tone-high {
+  color: #a3384a;
+}
+.badge.tone-neutral,
+.tone-neutral {
+  color: #52647a;
+}
+.sidebar .workspace-picker small,
+.sidebar .nav-heading,
+.sidebar .research-note p,
+.sidebar .profile small {
+  color: #9aafcb;
+}
+.environment-pill {
+  color: #42675b;
+}
+.content .eyebrow,
+.content .data-status,
+.content .metric-top > span:first-child,
+.content .metric-note,
+.content .chart-key,
+.content .risk-legend button,
+.content .risk-legend small,
+.content .donut-center span,
+.content .secondary-kpis small,
+.content .table-scroll td,
+.content .table-avatar,
+.content .applicant-cell small,
+.content .methodology strong,
+.content .methodology a,
+.content .workspace-footer,
+.content .research-banner span,
+.content .research-banner a {
+  color: var(--muted);
+}
+.content .secondary-kpis > div > span,
+.content .btn-ghost,
+.content th {
+  color: var(--muted);
+}
+
+[data-theme="dark"] {
+  --muted: #a5b6cd;
+  --safe: #82cbb9;
+  --risk: #efa69e;
+}
+[data-theme="dark"] .field > span {
+  color: var(--muted);
+}
+[data-theme="dark"] .badge.tone-low {
+  color: #9bd9c6;
+}
+[data-theme="dark"] .badge.tone-moderate {
+  color: #e0c887;
+}
+[data-theme="dark"] .badge.tone-elevated {
+  color: #e8b691;
+}
+[data-theme="dark"] .badge.tone-high {
+  color: #ecb2be;
+}
+[data-theme="dark"] .badge.tone-neutral {
+  color: #c5d2e4;
+  background: #26354b;
+}
+[data-theme="dark"] .environment-pill {
+  color: #a6cbbd;
+}
+[data-theme="dark"] .research-banner strong {
+  color: var(--strong);
 }

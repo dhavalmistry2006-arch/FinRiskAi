@@ -1,0 +1,3 @@
+applicantName,applicantId,age,monthlyIncome,monthlyExpenses,existingDebt,existingEmi,creditScore,loanAmount,tenureMonths,interestRate,employmentMonths,employmentType,loanPurpose,currency
+Synthetic Batch Applicant A,SAMPLE-A,30,90000,28000,100000,5000,760,400000,36,11,60,Salaried,Personal,INR
+Synthetic Batch Applicant B,SAMPLE-B,42,45000,22000,250000,12000,610,700000,48,14,24,Self-employed,Business,INR

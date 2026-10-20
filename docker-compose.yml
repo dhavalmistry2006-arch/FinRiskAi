@@ -1,42 +1,87 @@
-version: '3.8'
-
+name: finrisk-ai
 services:
-  # MongoDB Database
   mongodb:
     image: mongo:7
-    container_name: finrisk-mongodb
     restart: unless-stopped
-    environment:
-      MONGO_INITDB_DATABASE: finrisk-ai
-    ports:
-      - "27017:27017"
     volumes:
       - mongodb_data:/data/db
-    networks:
-      - finrisk-network
-
-  # Backend API
+    networks: [data]
+    healthcheck:
+      test:
+        [
+          CMD,
+          mongosh,
+          --quiet,
+          --eval,
+          "quit(db.adminCommand('ping').ok ? 0 : 1)",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  ml-service:
+    build:
+      context: .
+      dockerfile: ml-service/Dockerfile
+    restart: unless-stopped
+    environment:
+      OMP_NUM_THREADS: "2"
+      OPENBLAS_NUM_THREADS: "2"
+      ML_SERVICE_KEY: ${ML_SERVICE_KEY:-}
+    networks: [data]
+    healthcheck:
+      test:
+        [
+          CMD,
+          python,
+          -c,
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
   backend:
     build: ./backend
-    container_name: finrisk-backend
     restart: unless-stopped
-    ports:
-      - "5000:5000"
     environment:
-      - NODE_ENV=production
-      - PORT=5000
-      - MONGODB_URI=mongodb://mongodb:27017/finrisk-ai
-      - CORS_ORIGIN=http://localhost:3001
+      NODE_ENV: production
+      PORT: "5000"
+      MONGODB_URI: mongodb://mongodb:27017/finrisk-ai
+      ML_SERVICE_URL: http://ml-service:8000
+      ML_SERVICE_KEY: ${ML_SERVICE_KEY:-}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3001}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      DEMO_PASSWORD: ${DEMO_PASSWORD:?Set DEMO_PASSWORD in .env}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
     depends_on:
-      - mongodb
-    networks:
-      - finrisk-network
-    command: sh -c "sleep 10 && npm start"
-
+      mongodb: { condition: service_healthy }
+      ml-service: { condition: service_healthy }
+    networks: [data, web]
+    healthcheck:
+      test:
+        [
+          CMD,
+          node,
+          -e,
+          "fetch('http://127.0.0.1:5000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    ports: ["127.0.0.1:3001:80"]
+    depends_on:
+      backend: { condition: service_healthy }
+    networks: [web]
+    healthcheck:
+      test: [CMD, wget, -q, --spider, http://127.0.0.1/]
+      interval: 15s
+      timeout: 5s
+      retries: 5
 volumes:
   mongodb_data:
-    driver: local
-
 networks:
-  finrisk-network:
-    driver: bridge
+  data: { internal: true }
+  web: {}

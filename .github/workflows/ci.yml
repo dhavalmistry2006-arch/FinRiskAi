@@ -1,0 +1,68 @@
+name: Verify FinRisk AI
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:7
+        ports: ["27017:27017"]
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand({ping:1})'"
+          --health-interval 10s --health-timeout 5s --health-retries 10
+    env:
+      MONGODB_URI: mongodb://127.0.0.1:27017/finrisk-ci
+      JWT_SECRET: ci-only-ephemeral-nonproduction-secret-32-plus
+      DEMO_PASSWORD: CI-only-synthetic-Password-2026!
+      ML_SERVICE_URL: http://127.0.0.1:8000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          {
+            node-version: "24",
+            cache: npm,
+            cache-dependency-path: "**/package-lock.json",
+          }
+      - uses: actions/setup-python@v5
+        with:
+          {
+            python-version: "3.12",
+            cache: pip,
+            cache-dependency-path: ml-service/requirements.lock.txt,
+          }
+      - run: npm ci && npm run setup
+      - run: python -m pip install -r ml-service/requirements.lock.txt
+      - run: cd ml-service && python train.py && python -m pytest
+      - run: |
+          cd ml-service
+          python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 > /tmp/ml.log 2>&1 &
+      - run: node scripts/wait-ready.mjs http://127.0.0.1:8000/health
+      - run: npm run build && npm run lint && npm test
+      - run: npm run seed
+      - run: |
+          npm --prefix backend run dev > /tmp/backend.log 2>&1 &
+          npm --prefix frontend run dev -- --host 127.0.0.1 --port 3001 > /tmp/frontend.log 2>&1 &
+      - run: node scripts/wait-ready.mjs http://127.0.0.1:3001
+      - run: npx playwright install --with-deps chromium && npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with: { name: browser-failures, path: test-results/ }
+  dependency-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "24" }
+      - run: npm --prefix backend audit --omit=dev && npm --prefix frontend audit --omit=dev
+
+  python-dependency-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: python -m pip install pip-audit==2.10.1
+      - run: python -m pip_audit -r ml-service/requirements.lock.txt

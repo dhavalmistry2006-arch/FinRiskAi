@@ -1,1 +1,0 @@
-{"root":["./src/App.tsx","./src/api.ts","./src/main.tsx","./src/session.tsx","./src/components/ApplicationForm.tsx","./src/components/ui.tsx","./src/pages/Applications.tsx","./src/pages/Dashboard.tsx","./src/pages/Intelligence.tsx","./src/pages/Operations.tsx","./vite.config.ts","./tests/ApplicationForm.test.tsx","./tests/financials.test.ts","./tests/setup.ts"],"version":"5.8.3"}
